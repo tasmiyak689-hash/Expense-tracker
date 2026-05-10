@@ -1,0 +1,73 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+ <title>Expense Tracker</title>
+ <style>
+   body { font-family: Arial; margin: 20px; }
+   table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+   th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+   .total { margin-top: 10px; font-weight: bold; }
+ </style>
+</head>
+<body>
+ <h1>Expense Tracker</h1>
+ <form id="expense-form">
+   <input type="text" id="name" placeholder="Expense Name" required>
+   <input type="number" id="amount" placeholder="Amount" required>
+   <select id="category" required>
+     <option value="" disabled selected>Category</option>
+     <option>Food</option><option>Transport</option><option>Entertainment</option><option>Other</option>
+   </select>
+   <input type="date" id="date" required>
+   <button type="submit">Add Expense</button>
+ </form>
+ <label>Filter:
+   <select id="filter">
+     <option value="All">All</option>
+     <option>Food</option><option>Transport</option><option>Entertainment</option><option>Other</option>
+   </select>
+ </label>
+ <table>
+   <thead><tr><th>Name</th><th>Amount</th><th>Category</th><th>Date</th><th>Action</th></tr></thead>
+   <tbody id="expense-list"></tbody>
+ </table>
+ <div class="total">Total: $<span id="total">0</span></div>
+<script>
+let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+function renderExpenses(filter = 'All') {
+ const list = document.getElementById('expense-list');
+ list.innerHTML = '';
+ let total = 0;
+ expenses.filter(e => filter === 'All' || e.category === filter)
+         .forEach((e, i) => {
+           total += e.amount;
+           list.innerHTML += `<tr>
+             <td>${e.name}</td><td>${e.amount}</td><td>${e.category}</td><td>${e.date}</td>
+             <td><button onclick="deleteExpense(${i})">Delete</button></td></tr>`;
+         });
+ document.getElementById('total').textContent = total;
+}
+document.getElementById('expense-form').addEventListener('submit', e => {
+ e.preventDefault();
+ const expense = {
+   name: document.getElementById('name').value,
+   amount: parseFloat(document.getElementById('amount').value),
+   category: document.getElementById('category').value,
+   date: document.getElementById('date').value
+ };
+ expenses.push(expense);
+ localStorage.setItem('expenses', JSON.stringify(expenses));
+ e.target.reset();
+ renderExpenses(document.getElementById('filter').value);
+});
+function deleteExpense(index) {
+ expenses.splice(index, 1);
+ localStorage.setItem('expenses', JSON.stringify(expenses));
+ renderExpenses(document.getElementById('filter').value);
+}
+document.getElementById('filter').addEventListener('change', e => renderExpenses(e.target.value));
+renderExpenses();
+</script>
+</body>
+</html>
